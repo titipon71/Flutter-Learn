@@ -149,6 +149,7 @@ class AppTextField extends StatelessWidget {
     this.obscureText = false,
     this.suffix,
     this.validator,
+    this.onFieldSubmitted,
   });
   final String label;
   final String hint;
@@ -158,6 +159,7 @@ class AppTextField extends StatelessWidget {
   final bool obscureText;
   final Widget? suffix;
   final String? Function(String?)? validator;
+  final void Function(String)? onFieldSubmitted;
   @override
   Widget build(BuildContext context) {
     final border = OutlineInputBorder(
@@ -178,6 +180,7 @@ class AppTextField extends StatelessWidget {
           textInputAction: textInputAction,
           obscureText: obscureText,
           validator: validator,
+          onFieldSubmitted: onFieldSubmitted,
           decoration: InputDecoration(
             hintText: hint,
             filled: true,
@@ -270,7 +273,7 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    // final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: AbstractBackground(
         child: Align(
