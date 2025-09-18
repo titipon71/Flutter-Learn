@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'welcome_screen.dart'; // ใช้ AbstractBackground + shared atoms
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -18,6 +19,40 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _obscurePwd = true;
   bool _obscureConfirm = true;
   String? _agreeError;
+
+  Future<void> registerWithEmail() async {
+    try {
+      final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _email.text.trim(),
+        password: _password.text.trim(),
+      );
+      // อัปเดตชื่อผู้ใช้ (display name)
+      await credential.user?.updateDisplayName(_name.text.trim());
+
+      // ไปหน้า Welcome
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      String msg = 'สมัครสมาชิกไม่สำเร็จ';
+      if (e.code == 'email-already-in-use') {
+        msg = 'อีเมลนี้ถูกใช้ไปแล้ว';
+      } else if (e.code == 'invalid-email') {
+        msg = 'อีเมลไม่ถูกต้อง';
+      } else if (e.code == 'weak-password') {
+        msg = 'รหัสผ่านอ่อนเกินไป';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('เกิดข้อผิดพลาด')),
+      );
+    }
+  }
 
   @override
   void dispose() {
@@ -56,18 +91,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     if (!ok || !_agree) {
       if (!_agree) {
-        setState(() => _agreeError = 'Please agree before continuing');
+        setState(() => _agreeError = 'กรุณายอมรับเงื่อนไขก่อนดำเนินการต่อ');
       }
       return;
     }
 
-    // ผ่านทุกอย่างแล้ว
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Sign up tapped')),
-    );
-
-    // TODO: ทำ signup จริง / ไปหน้า Welcome
-    // Navigator.of(context).pushReplacement(...);
+    // สมัครสมาชิกจริง
+    registerWithEmail();
   }
 
   @override
