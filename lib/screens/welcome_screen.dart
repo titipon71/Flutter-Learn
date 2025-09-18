@@ -8,6 +8,7 @@ class AbstractBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Stack(
+      clipBehavior: Clip.none, // <— ให้ลอยเกินขอบได้
       children: [
         // soft page gradient
         Container(
@@ -31,11 +32,6 @@ class AbstractBackground extends StatelessWidget {
           child: Container(
             height: 340,
             decoration: const BoxDecoration(
-              // gradient: LinearGradient(
-              //   begin: Alignment.topLeft,
-              //   end: Alignment.bottomRight,
-              //   colors: [Color.fromARGB(255, 10, 47, 138), Color.fromARGB(255, 68, 103, 227), Color.fromARGB(255, 5, 18, 50)],
-              // ),
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(48),
                 bottomRight: Radius.circular(48),
@@ -43,76 +39,122 @@ class AbstractBackground extends StatelessWidget {
             ),
           ),
         ),
-        const _Blob(top: 40, left: 24, size: 68, color: Color(0xFF2B3A67)),
-        const _Blob(top: 120, right: 30, size: 100, color: Color(0xFF7FA7FF)),
-        const _Blob(top: 190, left: 90, size: 36, color: Color(0xFF132347)),
-        const _Blob(top: 250, right: 80, size: 44, color: Color(0xFF274FBE)),
-        const _Blob(
-          top: 130,
-          right: 80,
-          size: 44,
-          color: Color.fromARGB(255, 73, 111, 216),
-        ),
 
-        // ✅ เพิ่มอีก 10 blobs
-        const _Blob(top: 300, left: 40, size: 60, color: Color(0xFF4158D0)),
-        const _Blob(top: 350, right: 50, size: 72, color: Color(0xFF6A11CB)),
-        const _Blob(top: 400, left: 100, size: 40, color: Color(0xFF2575FC)),
-        const _Blob(top: 450, right: 120, size: 56, color: Color(0xFF5C258D)),
-        const _Blob(top: 500, left: 60, size: 90, color: Color(0xFF673AB7)),
-        const _Blob(top: 550, right: 30, size: 64, color: Color(0xFF3F51B5)),
-        const _Blob(top: 600, left: 20, size: 50, color: Color(0xFF2196F3)),
-        const _Blob(top: 650, right: 80, size: 84, color: Color(0xFF1E88E5)),
-        const _Blob(top: 700, left: 140, size: 36, color: Color(0xFF0D47A1)),
-        const _Blob(top: 750, right: 60, size: 60, color: Color(0xFF283593)),
+        // ------ BLOBS ที่ลอยขึ้น ------
+        AnimatedBlob(top: 40,  left: 24,  size: 68, color: const Color(0xFF2B3A67), durationMs: 11000, travel: 900, phase: .2),
+        AnimatedBlob(top: 120, right: 30, size: 100, color: const Color(0xFF7FA7FF), durationMs: 9000,  travel: 940, phase: .6),
+        AnimatedBlob(top: 190, left: 90,  size: 36, color: const Color(0xFF132347), durationMs: 8000,  travel: 880, phase: .1),
+        AnimatedBlob(top: 250, right: 80, size: 44, color: const Color(0xFF274FBE), durationMs: 10000, travel: 920, phase: .4),
+        AnimatedBlob(top: 130, right: 80, size: 44, color: const Color.fromARGB(255, 73, 111, 216), durationMs: 10500, travel: 920, phase: .8),
+        AnimatedBlob(top: 300, left: 40, size: 60, color: const Color(0xFF4158D0), durationMs: 9500,  travel: 900, phase: .3),
+        AnimatedBlob(top: 350, right: 50, size: 72, color: const Color(0xFF6A11CB), durationMs: 12000, travel: 960, phase: .7),
+        AnimatedBlob(top: 400, left: 100, size: 40, color: const Color(0xFF2575FC), durationMs: 8500,  travel: 880, phase: .15),
+        AnimatedBlob(top: 450, right: 120, size: 56, color: const Color(0xFF5C258D), durationMs: 10000, travel: 940, phase: .5),
+        AnimatedBlob(top: 500, left: 60,  size: 90, color: const Color(0xFF673AB7), durationMs: 13000, travel: 980, phase: .9),
+        AnimatedBlob(top: 550, right: 30,  size: 64, color: const Color(0xFF3F51B5), durationMs: 9500,  travel: 900, phase: .35),
+        AnimatedBlob(top: 600, left: 20,  size: 50, color: const Color(0xFF2196F3), durationMs: 9000,  travel: 880, phase: .55),
+        AnimatedBlob(top: 650, right: 80,  size: 84, color: const Color(0xFF1E88E5), durationMs: 11500, travel: 960, phase: .75),
+        AnimatedBlob(top: 700, left: 140, size: 36, color: const Color(0xFF0D47A1), durationMs: 8000,  travel: 900, phase: .05),
+        AnimatedBlob(top: 750, right: 60, size: 60, color: const Color(0xFF283593), durationMs: 10500, travel: 940, phase: .45),
+
         if (child != null) child!,
       ],
     );
   }
 }
 
-class _Blob extends StatelessWidget {
-  const _Blob({
-    this.top,
+// ❌ ลบคลาสนี้ทิ้งไปเลย (มันผิดชนิดและไม่ได้ใช้)
+// class _Blob extends StatefulWidget { ... }
+
+class AnimatedBlob extends StatefulWidget {
+  const AnimatedBlob({
+    super.key,
+    required this.top,
     this.left,
     this.right,
     required this.size,
     required this.color,
+    this.durationMs = 9000,
+    this.travel = 900,
+    this.phase,
   });
-  final double? top;
+
+  final double top;
   final double? left;
   final double? right;
   final double size;
   final Color color;
+
+  final int durationMs;
+  final double travel;
+  final double? phase;
+
+  @override
+  State<AnimatedBlob> createState() => _AnimatedBlobState();
+}
+
+class _AnimatedBlobState extends State<AnimatedBlob>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _t;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: widget.durationMs),
+    )..repeat(); // ลูปเรื่อย ๆ
+
+    if (widget.phase != null) {
+      _controller.value = widget.phase!.clamp(0.0, 1.0);
+    }
+
+    _t = CurvedAnimation(parent: _controller, curve: Curves.linear);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      top: top,
-      left: left,
-      right: right,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [Colors.white.withOpacity(.85), color],
-            center: Alignment.topLeft,
-            radius: 1.0,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(.25),
-              blurRadius: 24,
-              spreadRadius: 4,
-              offset: const Offset(0, 10),
+    return AnimatedBuilder(
+      animation: _t,
+      builder: (context, child) {
+        final currentTop = widget.top - widget.travel * _t.value;
+        return Positioned(
+          top: currentTop,
+          left: widget.left,
+          right: widget.right,
+          child: Container(
+            width: widget.size,
+            height: widget.size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [Colors.white.withOpacity(.85), widget.color],
+                center: Alignment.topLeft,
+                radius: 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: widget.color.withOpacity(.25),
+                  blurRadius: 24,
+                  spreadRadius: 4,
+                  offset: const Offset(0, 10),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
+
 
 class BackButtonBar extends StatelessWidget {
   const BackButtonBar({super.key});
@@ -325,9 +367,11 @@ class WelcomeScreen extends StatelessWidget {
                               ),
                             ),
                             foregroundColor: const Color.fromARGB(255, 0, 0, 0),
-                            textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                            textStyle: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          
+
                           child: const Text('Sign in'),
                         ),
                       ),
@@ -344,7 +388,8 @@ class WelcomeScreen extends StatelessWidget {
                                 topRight: Radius.circular(30),
                                 bottomRight: Radius.circular(30),
                               ),
-                              side: BorderSide( // เพิ่มขอบ
+                              side: BorderSide(
+                                // เพิ่มขอบ
                                 color: Colors.white, // สีขอบ
                                 width: 2, // ความหนาขอบ
                               ),
