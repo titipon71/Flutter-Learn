@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_app/screens/onboarding_screen.dart';
 import 'welcome_screen.dart'; // ใช้ AbstractBackground + shared atoms
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -32,7 +33,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       // ไปหน้า Welcome
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+          MaterialPageRoute(builder: (_) => const OnboardingScreen()),
         );
       }
     } on FirebaseAuthException catch (e) {

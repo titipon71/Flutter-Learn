@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_app/screens/onboarding_screen.dart';
 import 'welcome_screen.dart'; // ใช้ AbstractBackground + shared atoms
 
@@ -16,13 +17,41 @@ class _SignInScreenState extends State<SignInScreen> {
   bool _remember = true;
   // bool _loading = false; // เผื่อไว้ถ้าจะกันกดซ้ำ
 
+  Future<void> loginWithEmail() async {
+    try {
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _email.text.trim(),
+        password: _password.text.trim(),
+      );
+      // เข้าสู่ระบบสำเร็จ ไปหน้า Welcome
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      String msg = 'เข้าสู่ระบบไม่สำเร็จ';
+      if (e.code == 'user-not-found') {
+        msg = 'ไม่พบผู้ใช้นี้';
+      } else if (e.code == 'wrong-password') {
+        msg = 'รหัสผ่านไม่ถูกต้อง';
+      } else if (e.code == 'invalid-email') {
+        msg = 'อีเมลไม่ถูกต้อง';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('เกิดข้อผิดพลาด')),
+      );
+    }
+  }
+
   void _submit() {
     final form = _formKey.currentState;
     if (form != null && form.validate()) {
-      // form.save(); // ถ้ามี onSaved
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   const SnackBar(content: Text('Sign in tapped')),
-      Navigator.push(context, MaterialPageRoute(builder: (context) => const OnboardingScreen()));
+      loginWithEmail();
     }
   }
 
