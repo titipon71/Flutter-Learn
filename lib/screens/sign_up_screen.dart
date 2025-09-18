@@ -12,8 +12,63 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _passwordConfirmation = TextEditingController();
+
   bool _agree = true;
-  bool _obscure = true;
+  bool _obscurePwd = true;
+  bool _obscureConfirm = true;
+  String? _agreeError;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _email.dispose();
+    _password.dispose();
+    _passwordConfirmation.dispose();
+    super.dispose();
+  }
+
+  String? _validatePassword(String? v) {
+    final value = (v ?? '').trim();
+    if (value.isEmpty) return 'Required';
+    if (value.length < 6) return 'Min 6 chars';
+    return null;
+  }
+
+  String? _validatePasswordConfirmation(String? v) {
+    final confirm = (v ?? '').trim();
+    final pass = _password.text.trim();
+
+    // ใช้กฎเดียวกับ password ก่อน
+    final base = _validatePassword(confirm);
+    if (base != null) return base;
+
+    // แล้วค่อยเช็คความตรงกัน
+    if (confirm != pass) return 'Passwords do not match';
+    return null;
+  }
+
+  void _submit() {
+    // รีเซ็ต error ของ checkbox ก่อน
+    setState(() => _agreeError = null);
+
+    final ok = _formKey.currentState!.validate();
+
+    if (!ok || !_agree) {
+      if (!_agree) {
+        setState(() => _agreeError = 'Please agree before continuing');
+      }
+      return;
+    }
+
+    // ผ่านทุกอย่างแล้ว
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Sign up tapped')),
+    );
+
+    // TODO: ทำ signup จริง / ไปหน้า Welcome
+    // Navigator.of(context).pushReplacement(...);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +99,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         padding: const EdgeInsets.fromLTRB(24, 26, 24, 24),
                         child: Form(
                           key: _formKey,
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
@@ -71,36 +127,66 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 controller: _email,
                                 keyboardType: TextInputType.emailAddress,
                                 textInputAction: TextInputAction.next,
-                                validator: (v) => v != null && v.contains('@')
-                                    ? null
-                                    : 'Invalid email',
+                                validator: (v) {
+                                    final value = v?.trim() ?? '';
+                                    if (value.isEmpty) {
+                                      return 'Please enter email';
+                                    }
+                                    final emailOk = RegExp(
+                                      r'^[^@]+@[^@]+\.[^@]+$',
+                                    ).hasMatch(value);
+                                    if (!emailOk) {
+                                      return 'Please enter valid email';
+                                    }
+                                    return null;
+                                  },
                               ),
                               const SizedBox(height: 12),
                               AppTextField(
                                 label: 'Password',
                                 hint: 'Enter Password',
                                 controller: _password,
-                                obscureText: _obscure,
+                                obscureText: _obscurePwd,
+                                textInputAction: TextInputAction.next,
                                 suffix: IconButton(
                                   icon: Icon(
-                                    _obscure
+                                    _obscurePwd
                                         ? Icons.visibility_off
                                         : Icons.visibility,
                                   ),
                                   onPressed: () =>
-                                      setState(() => _obscure = !_obscure),
+                                      setState(() => _obscurePwd = !_obscurePwd),
                                 ),
-                                validator: (v) => v != null && v.length >= 6
-                                    ? null
-                                    : 'Min 6 chars',
+                                validator: _validatePassword,
+                              ),
+                              const SizedBox(height: 12),
+                              AppTextField(
+                                label: 'Password Confirmation',
+                                hint: 'Enter Password Again',
+                                controller: _passwordConfirmation,
+                                obscureText: _obscureConfirm,
+                                textInputAction: TextInputAction.done,
+                                onFieldSubmitted: (_) => _submit(),
+                                suffix: IconButton(
+                                  icon: Icon(
+                                    _obscureConfirm
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                  ),
+                                  onPressed: () => setState(
+                                      () => _obscureConfirm = !_obscureConfirm),
+                                ),
+                                validator: _validatePasswordConfirmation,
                               ),
                               const SizedBox(height: 8),
                               Row(
                                 children: [
                                   Checkbox(
                                     value: _agree,
-                                    onChanged: (v) =>
-                                        setState(() => _agree = v ?? false),
+                                    onChanged: (v) => setState(() {
+                                      _agree = v ?? false;
+                                      _agreeError = null;
+                                    }),
                                   ),
                                   const Flexible(
                                     child: Wrap(
@@ -112,22 +198,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   ),
                                 ],
                               ),
+                              if (_agreeError != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 12),
+                                  child: Text(
+                                    _agreeError!,
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.error,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
                               const SizedBox(height: 12),
                               SizedBox(
                                 height: 50,
                                 child: FilledButton(
-                                  onPressed: () {
-                                    if (_formKey.currentState!.validate() &&
-                                        _agree) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Sign up tapped'),
-                                        ),
-                                      );
-                                    }
-                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        const Color.fromARGB(255, 0, 66, 234),
+                                  ),
+                                  onPressed: _submit,
                                   child: const Text('Sign up'),
                                 ),
                               ),

@@ -146,6 +146,9 @@ class _SignInScreenState extends State<SignInScreen> {
                                 SizedBox(
                                   height: 50,
                                   child: FilledButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Color.fromARGB(255, 0, 66, 234),
+                                    ),
                                     onPressed: _submit,
                                     child: const Text('Sign in'),
                                   ),

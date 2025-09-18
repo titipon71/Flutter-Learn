@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:my_app/screens/sign_in_screen.dart';
+import 'package:my_app/screens/sign_up_screen.dart';
+import 'dart:math';
 
 // ---------- Shared Background & UI Atoms ----------
 class AbstractBackground extends StatelessWidget {
@@ -41,21 +44,32 @@ class AbstractBackground extends StatelessWidget {
         ),
 
         // ------ BLOBS ที่ลอยขึ้น ------
-        AnimatedBlob(top: 40,  left: 24,  size: 68, color: const Color(0xFF2B3A67), durationMs: 11000, travel: 900, phase: .2),
-        AnimatedBlob(top: 120, right: 30, size: 100, color: const Color(0xFF7FA7FF), durationMs: 9000,  travel: 940, phase: .6),
-        AnimatedBlob(top: 190, left: 90,  size: 36, color: const Color(0xFF132347), durationMs: 8000,  travel: 880, phase: .1),
-        AnimatedBlob(top: 250, right: 80, size: 44, color: const Color(0xFF274FBE), durationMs: 10000, travel: 920, phase: .4),
-        AnimatedBlob(top: 130, right: 80, size: 44, color: const Color.fromARGB(255, 73, 111, 216), durationMs: 10500, travel: 920, phase: .8),
-        AnimatedBlob(top: 300, left: 40, size: 60, color: const Color(0xFF4158D0), durationMs: 9500,  travel: 900, phase: .3),
-        AnimatedBlob(top: 350, right: 50, size: 72, color: const Color(0xFF6A11CB), durationMs: 12000, travel: 960, phase: .7),
-        AnimatedBlob(top: 400, left: 100, size: 40, color: const Color(0xFF2575FC), durationMs: 8500,  travel: 880, phase: .15),
-        AnimatedBlob(top: 450, right: 120, size: 56, color: const Color(0xFF5C258D), durationMs: 10000, travel: 940, phase: .5),
-        AnimatedBlob(top: 500, left: 60,  size: 90, color: const Color(0xFF673AB7), durationMs: 13000, travel: 980, phase: .9),
-        AnimatedBlob(top: 550, right: 30,  size: 64, color: const Color(0xFF3F51B5), durationMs: 9500,  travel: 900, phase: .35),
-        AnimatedBlob(top: 600, left: 20,  size: 50, color: const Color(0xFF2196F3), durationMs: 9000,  travel: 880, phase: .55),
-        AnimatedBlob(top: 650, right: 80,  size: 84, color: const Color(0xFF1E88E5), durationMs: 11500, travel: 960, phase: .75),
-        AnimatedBlob(top: 700, left: 140, size: 36, color: const Color(0xFF0D47A1), durationMs: 8000,  travel: 900, phase: .05),
-        AnimatedBlob(top: 750, right: 60, size: 60, color: const Color(0xFF283593), durationMs: 10500, travel: 940, phase: .45),
+        FloatingBlobs(
+          count: 48, // อยากกี่ก้อนก็ใส่ได้
+          areaHeight: 1000, // ความสูงบริเวณที่สุ่มตำแหน่งเริ่มต้น
+          minSize: 30,
+          maxSize: 110,
+          baseDurationMs:
+              10000, // จังหวะหลัก (แต่ละก้อนมี speed factor ของตัวเอง)
+          colors: const [
+            Color(0xFF2B3A67),
+            Color(0xFF7FA7FF),
+            Color(0xFF132347),
+            Color(0xFF274FBE),
+            Color.fromARGB(255, 73, 111, 216),
+            Color(0xFF4158D0),
+            Color(0xFF6A11CB),
+            Color(0xFF2575FC),
+            Color(0xFF5C258D),
+            Color(0xFF673AB7),
+            Color(0xFF3F51B5),
+            Color(0xFF2196F3),
+            Color(0xFF1E88E5),
+            Color(0xFF0D47A1),
+            Color(0xFF283593),
+            Color(0xFF1A237E),
+          ],
+        ),
 
         if (child != null) child!,
       ],
@@ -63,52 +77,46 @@ class AbstractBackground extends StatelessWidget {
   }
 }
 
-// ❌ ลบคลาสนี้ทิ้งไปเลย (มันผิดชนิดและไม่ได้ใช้)
-// class _Blob extends StatefulWidget { ... }
-
-class AnimatedBlob extends StatefulWidget {
-  const AnimatedBlob({
+class FloatingBlobs extends StatefulWidget {
+  const FloatingBlobs({
     super.key,
-    required this.top,
-    this.left,
-    this.right,
-    required this.size,
-    required this.color,
-    this.durationMs = 9000,
-    this.travel = 900,
-    this.phase,
+    this.count = 40, // จำนวน blob
+    this.areaWidth, // ความกว้างพื้นที่ (ถ้าไม่ใส่ จะใช้จาก LayoutBuilder)
+    this.areaHeight = 1, // ความสูงพื้นที่ที่ใช้สุ่มจุดเริ่ม
+    this.minSize = 28,
+    this.maxSize = 110,
+    this.baseDurationMs = 24000,
+    this.travel, // ระยะลอยขึ้น (ค่าเริ่มต้น = areaHeight + 200)
+    required this.colors, // โทนสีที่จะสุ่มใช้
   });
 
-  final double top;
-  final double? left;
-  final double? right;
-  final double size;
-  final Color color;
-
-  final int durationMs;
-  final double travel;
-  final double? phase;
+  final int count;
+  final double? areaWidth;
+  final double areaHeight;
+  final double minSize;
+  final double maxSize;
+  final int baseDurationMs;
+  final double? travel;
+  final List<Color> colors;
 
   @override
-  State<AnimatedBlob> createState() => _AnimatedBlobState();
+  State<FloatingBlobs> createState() => _FloatingBlobsState();
 }
 
-class _AnimatedBlobState extends State<AnimatedBlob>
+class _FloatingBlobsState extends State<FloatingBlobs>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  late final Animation<double> _t;
+  late final Animation<double> _t; // 0..1
+  List<_BlobSpec>? _specs;
+  final _rnd = Random();
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: widget.durationMs),
-    )..repeat(); // ลูปเรื่อย ๆ
-
-    if (widget.phase != null) {
-      _controller.value = widget.phase!.clamp(0.0, 1.0);
-    }
+      duration: Duration(milliseconds: widget.baseDurationMs),
+    )..repeat();
 
     _t = CurvedAnimation(parent: _controller, curve: Curves.linear);
   }
@@ -119,42 +127,130 @@ class _AnimatedBlobState extends State<AnimatedBlob>
     super.dispose();
   }
 
+  List<_BlobSpec> _buildSpecs(double width) {
+    final travel = widget.travel ?? (widget.areaHeight + 200);
+    return List.generate(widget.count, (i) {
+      final size =
+          _rnd.nextDouble() * (widget.maxSize - widget.minSize) +
+          widget.minSize;
+      final left = _rnd.nextDouble() * (max(0.0, width - size));
+      final top = _rnd.nextDouble() * widget.areaHeight;
+      final color = widget.colors[_rnd.nextInt(widget.colors.length)];
+
+      // ให้ blob แต่ละก้อนมีความเร็ว/เฟสไม่เท่ากัน
+      final speed = 0.65 + _rnd.nextDouble() * 0.9; // 0.65x..1.55x
+      final phase = _rnd.nextDouble(); // 0..1
+
+      // เพิ่ม drift ซ้าย-ขวาเล็กน้อยให้ดูมีชีวิต
+      final driftAmp = size * (0.06 + _rnd.nextDouble() * 0.12); // แอมป์ตามขนาด
+      final driftFreq = 0.5 + _rnd.nextDouble() * 1.2; // Hz-ish
+
+      return _BlobSpec(
+        top: top,
+        left: left,
+        size: size,
+        color: color,
+        speed: speed,
+        phase: phase,
+        travel: travel,
+        driftAmp: driftAmp,
+        driftFreq: driftFreq,
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _t,
-      builder: (context, child) {
-        final currentTop = widget.top - widget.travel * _t.value;
-        return Positioned(
-          top: currentTop,
-          left: widget.left,
-          right: widget.right,
-          child: Container(
-            width: widget.size,
-            height: widget.size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [Colors.white.withOpacity(.85), widget.color],
-                center: Alignment.topLeft,
-                radius: 1.0,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: widget.color.withOpacity(.25),
-                  blurRadius: 24,
-                  spreadRadius: 4,
-                  offset: const Offset(0, 10),
+    return LayoutBuilder(
+      builder: (_, constraints) {
+        final w = widget.areaWidth ?? constraints.maxWidth;
+        _specs ??= _buildSpecs(w);
+
+        return AnimatedBuilder(
+          animation: _t,
+          builder: (context, child) {
+            final children = <Widget>[];
+            for (final s in _specs!) {
+              // progress ของแต่ละก้อน (วน 0..1 ด้วย speed และ phase)
+              final p = ((_t.value * s.speed) + s.phase) % 1.0;
+
+              // ====== NEW: wrap ให้ลอยวนไม่สิ้นสุด ======
+              // ระยะช่วงรวมที่ใช้วน (ยาวกว่าหน้าจอหน่อยเพื่อให้โผล่ล่างแบบเนียน)
+              final span = s.travel + widget.areaHeight + s.size;
+
+              // ค่าตำแหน่งตามเดิม (ลอยขึ้น)
+              double y = s.top - s.travel * p;
+
+              // โมดูลัสให้ค่าอยู่ในช่วง [-s.size, span - s.size)
+              // เคล็ดลับ: เพิ่ม span ก่อน % เพื่อกันค่าเป็นลบ แล้วลบ s.size ให้ออกจากหน้าจอเล็กน้อยตอนวน
+              y = ((y + span) % span) - s.size;
+
+              // drift ซ้าย-ขวาแบบ sine
+              final driftX = sin(2 * pi * (p * s.driftFreq)) * s.driftAmp;
+
+              children.add(
+                Positioned(
+                  top: y,
+                  left: s.left + driftX,
+                  child: _blobCircle(size: s.size, color: s.color),
                 ),
-              ],
-            ),
-          ),
+              );
+            }
+            return Stack(clipBehavior: Clip.none, children: children);
+          },
         );
       },
     );
   }
+
+  Widget _blobCircle({required double size, required Color color}) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [Colors.white.withOpacity(.85), color],
+          center: Alignment.topLeft,
+          radius: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(.25),
+            blurRadius: 24,
+            spreadRadius: 4,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
+class _BlobSpec {
+  _BlobSpec({
+    required this.top,
+    required this.left,
+    required this.size,
+    required this.color,
+    required this.speed,
+    required this.phase,
+    required this.travel,
+    required this.driftAmp,
+    required this.driftFreq,
+  });
+
+  final double top;
+  final double left;
+  final double size;
+  final Color color;
+
+  final double speed; // ตัวคูณความเร็ว
+  final double phase; // 0..1
+  final double travel; // ระยะทางที่ลอยขึ้น
+  final double driftAmp;
+  final double driftFreq;
+}
 
 class BackButtonBar extends StatelessWidget {
   const BackButtonBar({super.key});
@@ -356,8 +452,12 @@ class WelcomeScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: TextButton(
-                          onPressed: () =>
-                              Navigator.pushNamed(context, '/signin'),
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SignInScreen(),
+                            ),
+                          ),
                           style: TextButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 18),
                             shape: const RoundedRectangleBorder(
@@ -377,8 +477,12 @@ class WelcomeScreen extends StatelessWidget {
                       ),
                       Expanded(
                         child: TextButton(
-                          onPressed: () =>
-                              Navigator.pushNamed(context, '/signup'),
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SignUpScreen(),
+                            ),
+                          ),
                           style: TextButton.styleFrom(
                             backgroundColor: Color.fromARGB(255, 10, 47, 138),
                             foregroundColor: Colors.white,
