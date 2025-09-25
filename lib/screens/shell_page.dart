@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:my_app/screens/sign_in_screen.dart';
+import 'package:my_app/screens/sign_up_screen.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:my_app/screens/navbar2_screen.dart';
 import 'package:my_app/assets/widgets/example_sidebarx.dart';

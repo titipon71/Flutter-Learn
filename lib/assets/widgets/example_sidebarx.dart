@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:my_app/screens/sign_in_screen.dart';
+import 'package:my_app/screens/sign_up_screen.dart';
 import 'package:sidebarx/sidebarx.dart';
 
 class ExampleSidebarX extends StatelessWidget {
@@ -6,10 +8,13 @@ class ExampleSidebarX extends StatelessWidget {
 
   final SidebarXController controller;
 
+
+
   @override
   Widget build(BuildContext context) {
     return SidebarX(
       controller: controller,
+      showToggleButton: false,
       theme: SidebarXTheme(
         decoration: const BoxDecoration(
           color: Colors.black, // พื้นหลัง sidebar
@@ -21,7 +26,7 @@ class ExampleSidebarX extends StatelessWidget {
         textStyle: const TextStyle(color: Colors.white),
 
         // 🎨 สีตอน hover
-        hoverColor: const Color.fromARGB(255, 255, 6, 6),
+        hoverColor: Colors.grey,
         hoverTextStyle: const TextStyle(color: Colors.white),
         hoverIconTheme: const IconThemeData(color: Colors.white),
 
@@ -32,23 +37,42 @@ class ExampleSidebarX extends StatelessWidget {
 
         // 🎨 ตอนเลือก (selected)
         selectedItemDecoration: BoxDecoration(
-          color: Colors.grey.withOpacity(0.3),
+          color: const Color.fromARGB(136, 158, 158, 158).withOpacity(0.3),
           borderRadius: BorderRadius.circular(8),
         ),
         selectedIconTheme: const IconThemeData(color: Colors.white),
         selectedTextStyle: const TextStyle(color: Colors.white),
       ),
+      extendedTheme: SidebarXTheme(
+        width: 250,
+        decoration: const BoxDecoration(
+          color: Colors.black,
+        ),
+      ),
       headerBuilder: (context, extended) {
         return SizedBox(
+          height: 100,
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Image.asset('lib/assets/images/logo.png'),
+            child: extended
+                ? Image.asset('lib/assets/images/logo.png')
+                : const Icon(Icons.menu, color: Colors.white, size: 24),
           ),
         );
       },
-      items: const [
-        SidebarXItem(icon: Icons.login, label: 'Sign In'),
-        SidebarXItem(icon: Icons.app_registration, label: 'Sign Up'),
+      items: [
+        SidebarXItem(icon: Icons.login, label: 'Sign In', onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => SignInScreen()),
+          );
+        }),
+        SidebarXItem(icon: Icons.app_registration, label: 'Sign Up', onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => SignUpScreen()),
+          );
+        }),
         SidebarXItem(icon: Icons.workspace_premium, label: 'Top up VIP'),
         SidebarXItem(icon: Icons.contact_support, label: 'Contact Us'),
         SidebarXItem(icon: Icons.settings, label: 'Settings'),
