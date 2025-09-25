@@ -1,6 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileScreen extends StatelessWidget {
+  // ===== Sign Out Function =====
+  Future<void> _signOut(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      // กลับไปหน้าแรกหรือหน้า login
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } catch (e) {
+      _showSheet(
+        context,
+        title: 'เกิดข้อผิดพลาด',
+        message: 'ไม่สามารถออกจากระบบได้:\n\n${e.toString()}',
+      );
+    }
+  }
   const ProfileScreen({super.key});
 
   // ===== Helpers: Popups =====
@@ -60,8 +75,9 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Future<void> _showEditDialog(BuildContext context) {
-    final nameCtrl = TextEditingController(text: 'Titipon Kaorobtham');
-    final emailCtrl = TextEditingController(text: 'johndoe@email.com');
+    final user = FirebaseAuth.instance.currentUser;
+    final nameCtrl = TextEditingController(text: user?.displayName);
+    final emailCtrl = TextEditingController(text: user?.email);
     return showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -128,7 +144,13 @@ class ProfileScreen extends StatelessWidget {
             content: const Text('คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ'),
             actions: [
               TextButton(onPressed: () => Navigator.pop(context), child: const Text('ยกเลิก')),
-              FilledButton(onPressed: () {/* ทำ logout */}, child: const Text('ออกจากระบบ')),
+              FilledButton(
+                onPressed: () {
+                  Navigator.pop(context); // ปิด dialog ก่อน
+                  _signOut(context);
+                },
+                child: const Text('ออกจากระบบ'),
+              ),
             ],
           ),
         );
@@ -139,7 +161,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-
+    final user = FirebaseAuth.instance.currentUser;
     return SingleChildScrollView(
       key: const PageStorageKey('profile'),
       child: Stack(
@@ -175,12 +197,11 @@ class ProfileScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   children: [
-                    const Text(
-                      'Titipon Kaorobtham',
+                    Text(user?.displayName ?? "No Name",
                       style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: 4),
-                    Text('johndoe@email.com',
+                    Text(user?.email ?? "No Email",
                       style: TextStyle(color: Colors.grey.shade700),
                     ),
                     const SizedBox(height: 12),
@@ -348,6 +369,7 @@ class _StatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    
     return Expanded(
       child: InkWell(
         onTap: onTap,

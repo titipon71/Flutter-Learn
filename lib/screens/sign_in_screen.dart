@@ -23,7 +23,7 @@ class _SignInScreenState extends State<SignInScreen> {
         email: _email.text.trim(),
         password: _password.text.trim(),
       );
-      // เข้าสู่ระบบสำเร็จ ไปหน้า Welcome
+      // เข้าสู่ระบบสำเร็จ ไปหน้า Onboarding
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const OnboardingScreen()),
@@ -158,12 +158,12 @@ class _SignInScreenState extends State<SignInScreen> {
                                 const SizedBox(height: 8),
                                 Row(
                                   children: [
-                                    Checkbox(
-                                      value: _remember,
-                                      onChanged: (v) =>
-                                          setState(() => _remember = v ?? false),
-                                    ),
-                                    const Text('Remember me'),
+                                    // Checkbox(
+                                    //   value: _remember,
+                                    //   onChanged: (v) =>
+                                    //       setState(() => _remember = v ?? false),
+                                    // ),
+                                    // const Text('Remember me'),
                                     const Spacer(),
                                     TextButton(
                                       onPressed: () {},

@@ -30,7 +30,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       // อัปเดตชื่อผู้ใช้ (display name)
       await credential.user?.updateDisplayName(_name.text.trim());
 
-      // ไปหน้า Welcome
+      // ไปหน้า onboarding
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const OnboardingScreen()),
@@ -210,25 +210,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 validator: _validatePasswordConfirmation,
                               ),
                               const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Checkbox(
-                                    value: _agree,
-                                    onChanged: (v) => setState(() {
-                                      _agree = v ?? false;
-                                      _agreeError = null;
-                                    }),
-                                  ),
-                                  const Flexible(
-                                    child: Wrap(
-                                      children: [
-                                        Text('I agree to the processing of '),
-                                        LinkText('Personal data'),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              
                               if (_agreeError != null)
                                 Padding(
                                   padding: const EdgeInsets.only(left: 12),

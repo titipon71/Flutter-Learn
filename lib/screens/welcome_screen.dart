@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:my_app/screens/sign_in_screen.dart';
 import 'package:my_app/screens/sign_up_screen.dart';
 import 'dart:math';
+import 'static_blobs.dart';
 
 // ---------- Shared Background & UI Atoms ----------
 class AbstractBackground extends StatelessWidget {
@@ -11,7 +12,7 @@ class AbstractBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Stack(
-      clipBehavior: Clip.none, // <— ให้ลอยเกินขอบได้
+      
       children: [
         // soft page gradient
         Container(
@@ -44,13 +45,20 @@ class AbstractBackground extends StatelessWidget {
         ),
 
         // ------ BLOBS ที่ลอยขึ้น ------
-        FloatingBlobs(
-          count: 48, // อยากกี่ก้อนก็ใส่ได้
-          areaHeight: 1000, // ความสูงบริเวณที่สุ่มตำแหน่งเริ่มต้น
+        // FloatingBlobs ถูกคอมเมนต์ไว้ตามคำขอ
+        // FloatingBlobs(
+        //   count: 24,
+        //   areaHeight: 1000,
+        //   minSize: 30,
+        //   maxSize: 110,
+        //   baseDurationMs: 10000,
+        //   colors: const [ ... ],
+        // ),
+        StaticBlobs(
+          count: 30,
+          areaHeight: 1000,
           minSize: 30,
           maxSize: 110,
-          baseDurationMs:
-              10000, // จังหวะหลัก (แต่ละก้อนมี speed factor ของตัวเอง)
           colors: const [
             Color(0xFF2B3A67),
             Color(0xFF7FA7FF),
@@ -70,6 +78,7 @@ class AbstractBackground extends StatelessWidget {
             Color(0xFF1A237E),
           ],
         ),
+
 
         if (child != null) child!,
       ],
@@ -108,6 +117,7 @@ class _FloatingBlobsState extends State<FloatingBlobs>
   late final AnimationController _controller;
   late final Animation<double> _t; // 0..1
   List<_BlobSpec>? _specs;
+  double? _lastWidth;
   final _rnd = Random();
 
   @override
@@ -164,7 +174,10 @@ class _FloatingBlobsState extends State<FloatingBlobs>
     return LayoutBuilder(
       builder: (_, constraints) {
         final w = widget.areaWidth ?? constraints.maxWidth;
-        _specs ??= _buildSpecs(w);
+        if (_specs == null || _lastWidth != w) {
+          _specs = _buildSpecs(w);
+          _lastWidth = w;
+        }
 
         return AnimatedBuilder(
           animation: _t,
@@ -192,7 +205,9 @@ class _FloatingBlobsState extends State<FloatingBlobs>
                 Positioned(
                   top: y,
                   left: s.left + driftX,
-                  child: _blobCircle(size: s.size, color: s.color),
+                  child: RepaintBoundary(
+                    child: _blobCircle(size: s.size, color: s.color),
+                  ),
                 ),
               );
             }

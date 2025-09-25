@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:my_app/screens/welcome_screen.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:my_app/screens/home2_screen.dart';
+import 'package:my_app/screens/navbar2_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +27,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3B6BD8)),
         textTheme: GoogleFonts.interTextTheme(),
       ),
-      home: const WelcomeScreen(),
+      home: Home2Screen(),
     );
   }
 }
